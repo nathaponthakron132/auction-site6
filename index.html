@@ -45,8 +45,8 @@
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         .item { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); color: #2c3e50; }
         .item-img-container { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background-color: #2c3e50; padding: 10px; border-radius: 8px; }
-        .item-img { max-width: 100%; height: 271.8px; object-fit: cover; border-radius: 10px; cursor: pointer; }
-        .item h2 { font-size: 20px; margin-bottom: 10px; }
+        .item-img { max-width: 100%; height: 250px; object-fit: cover; border-radius: 10px; cursor: pointer; }
+        .item h2 { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
         .item p { font-size: 16px; margin: 5px 0; }
         .bid-form { margin-top: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .btn-bid { background-color: #2c3e50; color: white; border: none; padding: 8px 15px; font-size: 14px; cursor: pointer; border-radius: 5px; transition: background-color 0.3s ease; }
@@ -57,8 +57,8 @@
         .bid-history { margin-top: 15px; border-collapse: collapse; width: 100%; }
         .bid-history th, .bid-history td { border: 1px solid #ddd; padding: 8px; text-align: left; color: #2c3e50; }
         .bid-history th { background-color: #2c3e50; color: white; }
-        .reset-button, .edit-button { background-color: #27ae60; border: none; color: white; padding: 8px 15px; font-size: 14px; cursor: pointer; border-radius: 5px; display: none; transition: background-color 0.3s ease; }
-        .reset-button:hover, .edit-button:hover { background-color: #219653; }
+        .reset-button, .edit-button, .save-button { background-color: #27ae60; border: none; color: white; padding: 8px 15px; font-size: 14px; cursor: pointer; border-radius: 5px; transition: background-color 0.3s ease; }
+        .reset-button:hover, .edit-button:hover, .save-button:hover { background-color: #219653; }
         .bid-form input { padding: 8px; border-radius: 5px; border: 1px solid #ddd; color: #2c3e50; }
         .bid-form input::placeholder { color: #7f8c8d; }
         .unlock-input { width: 100px; }
@@ -67,20 +67,22 @@
         .modal-content { max-width: 65%; max-height: 65%; border-radius: 8px; object-fit: contain; }
         .close { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
         .close:hover { color: #ccc; }
+        .current-price-red { color: red; font-weight: bold; }
+        .hidden-target-price { display: none; }
         @media (max-width: 768px) {
             .modal-content { max-width: 80%; max-height: 80%; }
-            .item-img { width: 150px; height: 150px; }
+            .item-img { width: 100px; height: 100px; }
             .navbar { flex-direction: column; padding: 10px; }
             .item { padding: 15px; }
-            .item h2 { font-size: 18px; }
+            .item h2 { font-size: 14px; font-weight: bold; }
             .item p { font-size: 14px; }
             .bid-form { flex-direction: column; gap: 5px; }
-            .bid-form input, .btn-bid, .reset-button, .edit-button { width: 100%; }
+            .bid-form input, .btn-bid, .reset-button, .edit-button, .save-button { width: 100%; }
             .unlock-input { width: 100%; }
         }
         @media (max-width: 480px) {
             .modal-content { max-width: 95%; max-height: 70%; }
-            .item-img { width: 100px; height: 100px; }
+            .item-img { width: 80px; height: 80px; }
         }
     </style>
 </head>
@@ -124,12 +126,15 @@
                 const data = await response.text();
                 const rows = data.split("\n").slice(1);
                 auctionData = rows.map(row => {
-                    const [imageUrl1, imageUrl2, imageUrl3, auctioneer, amuletName, templeName, year, material, startPrice, shipping] = row.split(",").map(item => item.trim());
+                    const [imageUrl1, imageUrl2, imageUrl3, imageUrl4, imageUrl5, imageUrl6, auctioneer, amuletName, templeName, year, material, startPrice, targetPrice] = row.split(",").map(item => item.trim());
                     return {
                         images: [
                             imageUrl1 && imageUrl1.startsWith("http") ? imageUrl1 : "https://via.placeholder.com/200",
                             imageUrl2 && imageUrl2.startsWith("http") ? imageUrl2 : "https://via.placeholder.com/200",
-                            imageUrl3 && imageUrl3.startsWith("http") ? imageUrl3 : "https://via.placeholder.com/200"
+                            imageUrl3 && imageUrl3.startsWith("http") ? imageUrl3 : "https://via.placeholder.com/200",
+                            imageUrl4 && imageUrl4.startsWith("http") ? imageUrl4 : "https://via.placeholder.com/200",
+                            imageUrl5 && imageUrl5.startsWith("http") ? imageUrl5 : "https://via.placeholder.com/200",
+                            imageUrl6 && imageUrl6.startsWith("http") ? imageUrl6 : "https://via.placeholder.com/200"
                         ],
                         auctioneer: auctioneer || "ไม่ระบุ",
                         amuletName: amuletName || "ไม่ระบุ",
@@ -137,32 +142,32 @@
                         year: year || "ไม่ระบุ",
                         material: material || "ไม่ระบุ",
                         startPrice: parseFloat(startPrice) || 50,
-                        shipping: parseFloat(shipping) || 20
+                        targetPrice: parseFloat(targetPrice) || 0
                     };
                 });
                 while (auctionData.length < 50) {
                     auctionData.push({
-                        images: ["https://via.placeholder.com/200", "https://via.placeholder.com/200", "https://via.placeholder.com/200"],
+                        images: Array(6).fill("https://via.placeholder.com/200"),
                         auctioneer: "ไม่ระบุ",
                         amuletName: "ไม่ระบุ",
                         templeName: "ไม่ระบุ",
                         year: "ไม่ระบุ",
                         material: "ไม่ระบุ",
                         startPrice: 50,
-                        shipping: 20
+                        targetPrice: 0
                     });
                 }
             } catch (error) {
                 console.error("Error fetching auction data:", error);
                 auctionData = Array(50).fill({
-                    images: ["https://via.placeholder.com/200", "https://via.placeholder.com/200", "https://via.placeholder.com/200"],
+                    images: Array(6).fill("https://via.placeholder.com/200"),
                     auctioneer: "ไม่ระบุ",
                     amuletName: "ไม่ระบุ",
                     templeName: "ไม่ระบุ",
                     year: "ไม่ระบุ",
                     material: "ไม่ระบุ",
                     startPrice: 50,
-                    shipping: 20
+                    targetPrice: 0
                 });
             }
         }
@@ -180,33 +185,38 @@
 
         function createAuctionItem(itemNumber, data, endDate, endTime, currentPrice) {
             const safeImageUrls = data.images;
+            // ตรวจสอบว่า currentPrice มากกว่า targetPrice หรือไม่
+            const isCurrentPriceAboveTarget = currentPrice > data.targetPrice && data.targetPrice > 0;
             return `
                 <div class="item" id="item-${itemNumber}">
                     <div class="item-img-container">
                         <img src="${safeImageUrls[0]}" alt="${data.amuletName} ภาพที่ 1" class="item-img" onclick="openModal('${safeImageUrls[0]}')">
                         <img src="${safeImageUrls[1]}" alt="${data.amuletName} ภาพที่ 2" class="item-img" onclick="openModal('${safeImageUrls[1]}')">
                         <img src="${safeImageUrls[2]}" alt="${data.amuletName} ภาพที่ 3" class="item-img" onclick="openModal('${safeImageUrls[2]}')">
+                        <img src="${safeImageUrls[3]}" alt="${data.amuletName} ภาพที่ 4" class="item-img" onclick="openModal('${safeImageUrls[3]}')">
+                        <img src="${safeImageUrls[4]}" alt="${data.amuletName} ภาพที่ 5" class="item-img" onclick="openModal('${safeImageUrls[4]}')">
+                        <img src="${safeImageUrls[5]}" alt="${data.amuletName} ภาพที่ 6" class="item-img" onclick="openModal('${safeImageUrls[5]}')">
                     </div>
-                    <p><b>ชื่อแชท Messenger ผู้ตั้งประมูล:</b> <span id="auctioneer${itemNumber}" contenteditable="false">${data.auctioneer}</span></p>
-                    <h2>ชื่อพระ ชื่อหลวงพ่อ รหัส J6: ${itemNumber}: <span id="amuletName${itemNumber}" contenteditable="false">${data.amuletName}</span></h2>
-                    <p><b>ชื่อวัด:</b> <span id="templeName${itemNumber}" contenteditable="false">${data.templeName}</span></p>
+                    <p><b>ชื่อผู้ตั้งประมูล:</b> <span id="auctioneer${itemNumber}" contenteditable="false">${data.auctioneer}</span></p>
+                    <h2>ชื่อพระ รหัส J6: ${itemNumber}: <span id="amuletName${itemNumber}" contenteditable="false">${data.amuletName}</span></h2>
+                    <p><b>รายละเอียด:</b> <span id="templeName${itemNumber}" contenteditable="false">${data.templeName}</span></p>
                     <p><b>สร้างปี:</b> <span id="year${itemNumber}" contenteditable="false">${data.year}</span></p>
                     <p><b>เนื้อพระ:</b> <span id="material${itemNumber}" contenteditable="false">${data.material}</span></p>
                     <p><b>วันที่สิ้นสุด:</b> <span id="endDate${itemNumber}" contenteditable="false">${endDate}</span></p>
                     <p><b>เวลาสิ้นสุด:</b> <span id="endTime${itemNumber}" contenteditable="false">${endTime}</span></p>
                     <p><b>ระยะเวลาสิ้นสุด:</b> <span id="timeLeft${itemNumber}">คำนวณ...</span></p>
                     <p><b>ราคาเริ่มต้น:</b> <span id="startPrice${itemNumber}" contenteditable="false">${data.startPrice}</span> บาท</p>
-                    <p><b>ราคาปัจจุบัน:</b> <span id="price${itemNumber}">${currentPrice}</span> บาท</p>
-                    <p><b>ค่าจัดส่ง:</b> <span id="shipping${itemNumber}" contenteditable="false">${data.shipping}</span> บาท</p>
-                    <p><b>ผู้ชนะการประมูล:</b> <span id="winner${itemNumber}">ยังไม่มีผู้ชนะ</span></p>
+                    <p><b>ราคาปัจจุบัน:</b> <span id="price${itemNumber}" class="${isCurrentPriceAboveTarget ? 'current-price-red' : ''}">${currentPrice}</span> บาท</p>
+                    <p id="targetPriceContainer${itemNumber}" class="${data.targetPrice > 0 ? 'hidden-target-price' : ''}"><b>ราคาตั้งประมูล:</b> <span id="targetPrice${itemNumber}" contenteditable="false">${data.targetPrice > 0 ? data.targetPrice : 'ยังไม่ตั้ง'}</span> บาท</p>
+                    <p><b>ผู้ประมูลล่าสุด:</b> <span id="winner${itemNumber}">ยังไม่มีผู้ประมูล</span></p>
                     <div class="bid-form">
                         <input type="text" id="bidderName${itemNumber}" placeholder="IDผู้ประมูล" oninput="checkInputs(${itemNumber})">
                         <input type="number" id="bidAmount${itemNumber}" placeholder="ราคาที่ต้องการประมูล">
                         <button class="btn-bid" onclick="placeBid(${itemNumber})">ประมูล</button>
                         <input type="text" id="unlockCode${itemNumber}" class="unlock-input" placeholder="ไม่ต้องกรอก" oninput="checkInputs(${itemNumber})">
-                        <button class="edit-button" id="editBtn${itemNumber}" onclick="toggleEdit(${itemNumber})">แก้ไข</button>
-                        <button class="btn-bid" id="saveBtn${itemNumber}" onclick="saveEdit(${itemNumber})" style="display:none">บันทึก</button>
-                        <button class="reset-button" id="resetButton${itemNumber}" onclick="resetAuctionItem(${itemNumber})">รีเซ็ตรายการนี้</button>
+                        <button class="edit-button" id="editBtn${itemNumber}" onclick="toggleEdit(${itemNumber})" style="display:none">แก้ไข</button>
+                        <button class="save-button" id="saveBtn${itemNumber}" onclick="saveEdit(${itemNumber})" style="display:none">บันทึก</button>
+                        <button class="reset-button" id="resetButton${itemNumber}" onclick="resetAuctionItem(${itemNumber})" style="display:none">รีเซ็ตรายการนี้</button>
                     </div>
                     <h3>ประวัติการประมูล (5 ล่าสุด)</h3>
                     <table class="bid-history" id="bidHistory${itemNumber}">
@@ -220,7 +230,7 @@
         async function initializeAuctionItems() {
             await fetchAuctionData();
             const container = document.querySelector('.container');
-            container.innerHTML = '<a href="https://nathaponthakron132.github.io/auction-site/" class="btn-details">กลับหน้ากระดานประมูล พระเครี่อง เครื่องรางของขลัง รหัส J1</a>';
+            container.innerHTML = '<a href="https://nathaponthakron132.github.io/auction-site2/" class="btn-details">ไปหน้าที่ 2</a>';
             for (let i = 1; i <= 50; i++) {
                 const itemData = auctionData[i - 1];
                 const endDate = calculateEndDate(i);
@@ -279,6 +289,7 @@
             document.getElementById(`winner${itemNumber}`).innerText = bidderName;
             document.getElementById(`winner${itemNumber}`).classList.add("winner");
             addBidToHistory(itemNumber, bidderName, bidAmount);
+            updatePriceColor(itemNumber);
             alert("ประมูลสำเร็จ!");
             bidderNameInput.value = "";
             bidAmountInput.value = "";
@@ -319,7 +330,11 @@
 
         async function resetAuctionItem(itemNumber) {
             document.getElementById(`price${itemNumber}`).innerText = document.getElementById(`startPrice${itemNumber}`).innerText;
-            document.getElementById(`winner${itemNumber}`).innerText = "ยังไม่มีผู้ชนะ";
+            const targetPriceElement = document.getElementById(`targetPrice${itemNumber}`);
+            const targetPriceContainer = document.getElementById(`targetPriceContainer${itemNumber}`);
+            targetPriceElement.innerText = "ยังไม่ตั้ง";
+            targetPriceContainer.classList.remove("hidden-target-price");
+            document.getElementById(`winner${itemNumber}`).innerText = "ยังไม่มีผู้ประมูล";
             document.getElementById(`winner${itemNumber}`).classList.remove("winner");
             document.getElementById(`bidHistory${itemNumber}`).getElementsByTagName('tbody')[0].innerHTML = "";
             document.getElementById(`bidderName${itemNumber}`).value = "";
@@ -327,7 +342,21 @@
             document.getElementById(`unlockCode${itemNumber}`).value = "";
             document.getElementById(`resetButton${itemNumber}`).style.display = "none";
             document.getElementById(`editBtn${itemNumber}`).style.display = "none";
+            document.getElementById(`saveBtn${itemNumber}`).style.display = "none";
+            updatePriceColor(itemNumber);
             await saveBidToFirestore(itemNumber);
+        }
+
+        function updatePriceColor(itemNumber) {
+            const targetPrice = parseFloat(document.getElementById(`targetPrice${itemNumber}`).innerText) || 0;
+            const currentPrice = parseFloat(document.getElementById(`price${itemNumber}`).innerText);
+            const currentPriceElement = document.getElementById(`price${itemNumber}`);
+            // ถ้า currentPrice มากกว่า targetPrice และ targetPrice มากกว่า 0 ราคาจะเป็นสีแดง
+            if (currentPrice > targetPrice && targetPrice > 0) {
+                currentPriceElement.classList.add('current-price-red');
+            } else {
+                currentPriceElement.classList.remove('current-price-red');
+            }
         }
 
         async function saveBidToFirestore(itemNumber) {
@@ -342,7 +371,7 @@
                 endTime: document.getElementById(`endTime${itemNumber}`).innerText,
                 startPrice: document.getElementById(`startPrice${itemNumber}`).innerText,
                 currentPrice: document.getElementById(`price${itemNumber}`).innerText,
-                shipping: document.getElementById(`shipping${itemNumber}`).innerText,
+                targetPrice: document.getElementById(`targetPrice${itemNumber}`).innerText === 'ยังไม่ตั้ง' ? '0' : document.getElementById(`targetPrice${itemNumber}`).innerText,
                 winner: document.getElementById(`winner${itemNumber}`).innerText,
                 bidHistory: getBidHistory(itemNumber)
             };
@@ -370,23 +399,42 @@
         }
 
         function toggleEdit(itemNumber) {
-            const fields = [`auctioneer${itemNumber}`, `amuletName${itemNumber}`, `templeName${itemNumber}`, `year${itemNumber}`, `material${itemNumber}`, `endDate${itemNumber}`, `endTime${itemNumber}`, `startPrice${itemNumber}`, `shipping${itemNumber}`];
+            const fields = [`auctioneer${itemNumber}`, `amuletName${itemNumber}`, `templeName${itemNumber}`, `year${itemNumber}`, `material${itemNumber}`, `endDate${itemNumber}`, `endTime${itemNumber}`, `startPrice${itemNumber}`, `targetPrice${itemNumber}`];
             fields.forEach(field => {
-                document.getElementById(field).contentEditable = "true";
-                document.getElementById(field).style.backgroundColor = "#f0f0f0";
+                const element = document.getElementById(field);
+                element.contentEditable = "true";
+                element.style.backgroundColor = "#f0f0f0";
+                if (field === `targetPrice${itemNumber}` && element.innerText === 'ยังไม่ตั้ง') {
+                    element.innerText = '0';
+                    document.getElementById(`targetPriceContainer${itemNumber}`).classList.remove('hidden-target-price');
+                }
             });
             document.getElementById(`editBtn${itemNumber}`).style.display = "none";
             document.getElementById(`saveBtn${itemNumber}`).style.display = "inline-block";
         }
 
         async function saveEdit(itemNumber) {
-            const fields = [`auctioneer${itemNumber}`, `amuletName${itemNumber}`, `templeName${itemNumber}`, `year${itemNumber}`, `material${itemNumber}`, `endDate${itemNumber}`, `endTime${itemNumber}`, `startPrice${itemNumber}`, `shipping${itemNumber}`];
+            const fields = [`auctioneer${itemNumber}`, `amuletName${itemNumber}`, `templeName${itemNumber}`, `year${itemNumber}`, `material${itemNumber}`, `endDate${itemNumber}`, `endTime${itemNumber}`, `startPrice${itemNumber}`, `targetPrice${itemNumber}`];
+            const targetPriceElement = document.getElementById(`targetPrice${itemNumber}`);
+            const targetPriceContainer = document.getElementById(`targetPriceContainer${itemNumber}`);
+            const targetPrice = parseFloat(targetPriceElement.innerText) || 0;
+
             fields.forEach(field => {
-                document.getElementById(field).contentEditable = "false";
-                document.getElementById(field).style.backgroundColor = "transparent";
+                const element = document.getElementById(field);
+                element.contentEditable = "false";
+                element.style.backgroundColor = "transparent";
             });
+
+            if (targetPrice <= 0) {
+                targetPriceElement.innerText = 'ยังไม่ตั้ง';
+                targetPriceContainer.classList.remove('hidden-target-price');
+            } else {
+                targetPriceContainer.classList.add('hidden-target-price');
+            }
+
             document.getElementById(`editBtn${itemNumber}`).style.display = "none";
             document.getElementById(`saveBtn${itemNumber}`).style.display = "none";
+            updatePriceColor(itemNumber);
             await saveEditedDataToFirestore(itemNumber);
         }
 
@@ -402,7 +450,7 @@
                 endTime: document.getElementById(`endTime${itemNumber}`).innerText,
                 startPrice: document.getElementById(`startPrice${itemNumber}`).innerText,
                 currentPrice: document.getElementById(`price${itemNumber}`).innerText,
-                shipping: document.getElementById(`shipping${itemNumber}`).innerText,
+                targetPrice: document.getElementById(`targetPrice${itemNumber}`).innerText === 'ยังไม่ตั้ง' ? '0' : document.getElementById(`targetPrice${itemNumber}`).innerText,
                 winner: document.getElementById(`winner${itemNumber}`).innerText,
                 bidHistory: getBidHistory(itemNumber)
             };
@@ -432,7 +480,8 @@
                         endTime: document.getElementById(`endTime${i}`),
                         startPrice: document.getElementById(`startPrice${i}`),
                         price: document.getElementById(`price${i}`),
-                        shipping: document.getElementById(`shipping${i}`),
+                        targetPrice: document.getElementById(`targetPrice${i}`),
+                        targetPriceContainer: document.getElementById(`targetPriceContainer${i}`),
                         winner: document.getElementById(`winner${i}`),
                         table: document.getElementById(`bidHistory${i}`)?.getElementsByTagName('tbody')[0]
                     };
@@ -449,9 +498,13 @@
                         elements.endTime.innerText = item.endTime || "12:00";
                         elements.startPrice.innerText = item.startPrice || defaultValues.startPrice;
                         elements.price.innerText = item.currentPrice || defaultValues.startPrice;
-                        elements.shipping.innerText = item.shipping || defaultValues.shipping;
-                        elements.winner.innerText = item.winner || "ยังไม่มีผู้ชนะ";
-                        elements.winner.classList.toggle("winner", item.winner && item.winner !== "ยังไม่มีผู้ชนะ");
+                        const targetPrice = parseFloat(item.targetPrice) || 0;
+                        const currentPrice = parseFloat(item.currentPrice) || defaultValues.startPrice;
+                        elements.targetPrice.innerText = targetPrice > 0 ? targetPrice : 'ยังไม่ตั้ง';
+                        elements.targetPriceContainer.classList.toggle('hidden-target-price', targetPrice > 0);
+                        elements.winner.innerText = item.winner || "ยังไม่มีผู้ประมูล";
+                        elements.winner.classList.toggle("winner", item.winner && item.winner !== "ยังไม่มีผู้ประมูล");
+                        elements.price.classList.toggle('current-price-red', currentPrice > targetPrice && targetPrice > 0);
                         if (elements.table) {
                             elements.table.innerHTML = "";
                             if (item.bidHistory?.length) {
