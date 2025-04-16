@@ -197,11 +197,11 @@
                         <img src="${safeImageUrls[4]}" alt="${data.amuletName} ภาพที่ 5" class="item-img" onclick="openModal('${safeImageUrls[4]}')">
                         <img src="${safeImageUrls[5]}" alt="${data.amuletName} ภาพที่ 6" class="item-img" onclick="openModal('${safeImageUrls[5]}')">
                     </div>
-                    <p><b>ชื่อผู้ตั้งประมูล:</b> <span id="auctioneer${itemNumber}" contenteditable="false">${data.auctioneer}</span></p>
-                    <h2>ชื่อพระ รหัส J6: ${itemNumber}: <span id="amuletName${itemNumber}" contenteditable="false">${data.amuletName}</span></h2>
-                    <p><b>รายละเอียด:</b> <span id="templeName${itemNumber}" contenteditable="false">${data.templeName}</span></p>
-                    <p><b>สร้างปี:</b> <span id="year${itemNumber}" contenteditable="false">${data.year}</span></p>
-                    <p><b>เนื้อพระ:</b> <span id="material${itemNumber}" contenteditable="false">${data.material}</span></p>
+                    <p><b>ชื่อแชท Messenger ผู้ตั้งประมูล:</b> <span id="auctioneer${itemNumber}" contenteditable="false">${data.auctioneer}</span></p>
+                    <h2>ชื่อพระ ชื่อหลวงพ่อ ชื่อวัด รหัส J6: ${itemNumber}: <span id="amuletName${itemNumber}" contenteditable="false">${data.amuletName}</span></h2>
+                    <p><b>สร้างปี:</b> <span id="templeName${itemNumber}" contenteditable="false">${data.templeName}</span></p>
+                    <p><b>รุ่นพระ เนื้อพระ:</b> <span id="year${itemNumber}" contenteditable="false">${data.year}</span></p>
+                    <p><b>รายละเอียด:</b> <span id="material${itemNumber}" contenteditable="false">${data.material}</span></p>
                     <p><b>วันที่สิ้นสุด:</b> <span id="endDate${itemNumber}" contenteditable="false">${endDate}</span></p>
                     <p><b>เวลาสิ้นสุด:</b> <span id="endTime${itemNumber}" contenteditable="false">${endTime}</span></p>
                     <p><b>ระยะเวลาสิ้นสุด:</b> <span id="timeLeft${itemNumber}">คำนวณ...</span></p>
@@ -210,7 +210,7 @@
                     <p id="targetPriceContainer${itemNumber}" class="${data.targetPrice > 0 ? 'hidden-target-price' : ''}"><b>ราคาตั้งประมูล:</b> <span id="targetPrice${itemNumber}" contenteditable="false">${data.targetPrice > 0 ? data.targetPrice : 'ยังไม่ตั้ง'}</span> บาท</p>
                     <p><b>ผู้ประมูลล่าสุด:</b> <span id="winner${itemNumber}">ยังไม่มีผู้ประมูล</span></p>
                     <div class="bid-form">
-                        <input type="text" id="bidderName${itemNumber}" placeholder="IDผู้ประมูล" oninput="checkInputs(${itemNumber})">
+                        <input type="text" id="bidderName${itemNumber}" placeholder="แชทMessengerหรือIDผู้ประมูล" oninput="checkInputs(${itemNumber})">
                         <input type="number" id="bidAmount${itemNumber}" placeholder="ราคาที่ต้องการประมูล">
                         <button class="btn-bid" onclick="placeBid(${itemNumber})">ประมูล</button>
                         <input type="text" id="unlockCode${itemNumber}" class="unlock-input" placeholder="ไม่ต้องกรอก" oninput="checkInputs(${itemNumber})">
@@ -230,7 +230,7 @@
         async function initializeAuctionItems() {
             await fetchAuctionData();
             const container = document.querySelector('.container');
-            container.innerHTML = '<a href="https://nathaponthakron132.github.io/auction-site2/" class="btn-details">ไปหน้าที่ 2</a>';
+            container.innerHTML = '<a href="https://nathaponthakron132.github.io/Load-auction-amulets/" class="btn-details">ไปหน้าอัพโหลดรูปภาพและข้อมูล</a>';
             for (let i = 1; i <= 50; i++) {
                 const itemData = auctionData[i - 1];
                 const endDate = calculateEndDate(i);
